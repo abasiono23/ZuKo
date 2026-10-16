@@ -60,6 +60,17 @@ def require_service_key(x_service_key: str | None = Header(default=None)) -> Non
 api = Depends(require_service_key)
 
 
+@app.get("/", include_in_schema=False)
+def root():
+    return {
+        "service": "Zuko AI Service",
+        "status": "ok",
+        "docs": "/docs",
+        "health": "/health",
+        "api_contract": "https://github.com/abasiono23/ZuKo/blob/main/ai-service/docs/API.md",
+    }
+
+
 @app.get("/health")
 def health():
     s = get_settings()
