@@ -1,0 +1,51 @@
+# Render Blueprint: deploys the Zuko AI service from this repo.
+# Render dashboard → New → Blueprint → pick this repo. Secrets marked `sync: false`
+# are asked for once during setup and never stored in git.
+services:
+  - type: web
+    name: zuko-ai-service
+    runtime: python
+    plan: free
+    rootDir: ai-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.7
+
+      # Shared secret the Node backend sends as X-Service-Key. Render generates it;
+      # copy it from the Environment tab and share it privately with the backend dev.
+      - key: ZUKO_SERVICE_KEY
+        generateValue: true
+      # Comma-separated frontend/backend origins allowed to call the service from a browser.
+      - key: CORS_ORIGINS
+        value: http://localhost:3000,http://localhost:5173
+
+      # AI (OpenAI)
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ZUKO_AI_ENABLED
+        value: "true"
+      - key: ZUKO_AI_MODEL
+        value: gpt-5.5
+      - key: ZUKO_PARSE_EFFORT
+        value: low
+      - key: ZUKO_COACH_EFFORT
+        value: medium
+
+      # BMONI sandbox (Embedded API)
+      - key: BMONI_MODE
+        value: sandbox
+      - key: BMONI_BASE_URL
+        value: https://embedded-dev.bmoni.com
+      - key: BMONI_API_KEY
+        sync: false
+      - key: BMONI_AUTH_SCHEME
+        value: x-api-key
+      # Demo student "David Adeleke" (fictional) created by scripts/bmoni_setup_demo.py
+      - key: BMONI_USER_ID
+        value: bc634f2d-6832-458b-b00b-88c3f32d301f
+      - key: BMONI_NAIRA_CURRENCIES
+        value: CNGN,NGN
